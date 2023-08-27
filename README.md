@@ -16,3 +16,88 @@
 https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/sec-center/sec-check/mediaCheckAsync.html
 miniapp微信小程序库
 https://github.com/binarywang/weixin-java-miniapp-demo
+
+## 基本流程
+
+1. 客户端发送图像审核请求
+2. **业务server**向微信内容审核服务器发送审核请求, 获得trace_id
+3. 将`trace_id`写入redis , 格式为 `callback:moderate:${target_id} : ${回调消息接口url}`
+4. 微信内容审核服务器将审核结果发送到**callBack server**
+5. **callBack server** 通过`target_id` 获取真正的 **回调消息接口url**
+6. **callBack server** 将请求转发给 真正的 **回调消息接口url**
+7. 业务server接收回调消息 , 执行审核操作
+
+**补充点**
+
+1. **HTTPS不能在访问路径中填写确定的port**  , 比如应该使用`http://localhost:9000/api/prod/review/image/callback` 而不是 `https://localhost:9000/api/prod/review/image/callback`
+2. 可以在**callBack**中自定义扩展其他操作
+3. 在**callBack**中设置重试机制 , 确保业务server正确接收到了回调消息
+
+<img src="assets/image-20230827210156285.png" alt="image-20230827210156285" style="zoom:80%;" />
+
+## 测试
+
+### 准备工作
+
+**修改application.properties文件,  配置redis地址**
+
+### 测试流程
+
+`com.danxiaocampus.callback.controller`中的 `ProdServerController`  以及 `TestServerController`分别用来模拟正式服务器与测试服务器。
+
+1.  通过向`http:localhost:9000/api/${environment}/send/moderate`  请求来模拟**发送审核请求**
+2.  通过向`http:localhost:9000/api/review/image/callback`  请求来模拟**微信服务器发送回调消息**
+
+查看控制台日志信息
+
+```bash
+2023-08-27 20:58:08.934  INFO 53608 --- [nio-9000-exec-2] c.d.c.controller.TestServerController    : test-server执行图像审核: trace_id:60f96f1d-3845297a-1976a3ae
+2023-08-27 20:58:10.500  INFO 53608 --- [nio-9000-exec-4] c.d.c.controller.TestServerController    : test-server接收到了回调消息: WxImageModerationAsyncResult(toUserName=null, fromUserName=null, createTime=0, msgType=null, event=null, appid=wx8f16a5be77871234, traceId=null, version=2, result=WxModerationResult(suggest=pass, label=100), detail=[WxModerationDetail(strategy=content_model, errCode=null, suggest=pass, label=100, prob=90, keyword=null)])
+2023-08-27 20:58:10.513  INFO 53608 --- [nio-9000-exec-3] c.d.c.controller.ForwardController       : 审核回调消息转发成功, targetUrl:http://localhost:9000/api/test/review/image/callback
+```
+
+**测试数据**
+
+回调消息数据
+
+> ==确保此条内容以代码中 **trace_id** 相同==
+
+```json
+{
+   "ToUserName": "gh_9df7d78a1234",
+   "FromUserName": "o4_t144jTUSEoxydysUA2E234_tc",
+   "CreateTime": 1626959646,
+   "MsgType": "event",
+   "Event": "wxa_media_check",
+   "appid": "wx8f16a5be77871234",
+   "trace_id": "60f96f1d-3845297a-1976a3ae",
+   "version": 2,
+   "detail": [{
+        "strategy": "content_model",
+        "errcode": 0,
+        "suggest": "pass",
+        "label": 100,
+        "prob": 90
+   }],
+   "errcode": 0,
+   "errmsg": "ok",
+   "result": {
+        "suggest": "pass",
+        "label": 100
+   }
+}
+```
+
+### 示例
+
+- 以下使用postman进行测试
+
+1. 模拟**发送审核请求**
+
+![](assets/image-20230827211902598.png)2. 模拟微信回调消息
+
+![](assets/image-20230827211937402.png)
+
+3. 在控制台查看日志信息
+
+   ![](assets/image-20230827212153196.png)
