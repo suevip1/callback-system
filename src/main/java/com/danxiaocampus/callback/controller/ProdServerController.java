@@ -1,7 +1,7 @@
 package com.danxiaocampus.callback.controller;
 
 import com.danxiaocampus.callback.Config.PropertiesConfig;
-import com.danxiaocampus.callback.constant.SystemConstant;
+import com.danxiaocampus.callback.constant.RedisConstant;
 import com.danxiaocampus.callback.model.WxImageModerationAsyncResult;
 import com.danxiaocampus.callback.model.WxModerationResult;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +35,7 @@ public class ProdServerController {
         */
         // 保存server信息到redis
         String traceId = properties.getTraceId();
-        String key = SystemConstant.CALLBACK_MODERATE_KEY+traceId;
+        String key = RedisConstant.CALLBACK_MODERATE_KEY+traceId;
         String serverUrl = properties.getProdServerUrl();
         stringRedisTemplate.opsForValue().set(key,serverUrl);
         String s = stringRedisTemplate.opsForValue().get(key);

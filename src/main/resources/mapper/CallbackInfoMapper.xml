@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.danxiaocampus.callback.mapper.CallbackInfoMapper">
+    <resultMap id="BaseResultMap" type="com.danxiaocampus.callback.model.DO.CallbackInfo">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="traceId" column="trace_id" jdbcType="VARCHAR"/>
+        <result property="serverUri" column="server_uri" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="isReceived" column="is_received" jdbcType="TINYINT"/>
+        <result property="errMsg" column="err_msg" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,trace_id,server_uri,
+        is_received,create_time,err_msg
+    </sql>
+</mapper>
