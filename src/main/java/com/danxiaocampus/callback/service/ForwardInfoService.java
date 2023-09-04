@@ -2,6 +2,10 @@ package com.danxiaocampus.callback.service;
 
 import com.danxiaocampus.callback.model.DO.ForwardInfo;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.danxiaocampus.callback.model.WxImageModerationAsyncResult;
+import org.springframework.http.ResponseEntity;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
 * @author dhx
@@ -10,4 +14,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface ForwardInfoService extends IService<ForwardInfo> {
 
+    ResponseEntity<String> forwardModerateResult(WxImageModerationAsyncResult callbackMessage, HttpServletRequest request);
+
+    ResponseEntity<String> sendErrorModerateResult(WxImageModerationAsyncResult wxImageModerationAsyncResult, String uri);
 }

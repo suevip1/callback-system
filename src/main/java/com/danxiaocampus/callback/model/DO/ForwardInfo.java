@@ -72,6 +72,10 @@ public class ForwardInfo implements Serializable {
         this.createTime = new Date();
     }
 
+    public ForwardInfo() {
+
+    }
+
     @Override
     public boolean equals(Object that) {
         if (this == that) {

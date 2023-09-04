@@ -60,6 +60,9 @@ public class CallbackInfo implements Serializable {
         this.isReceived = 0;
     }
 
+    public CallbackInfo() {
+    }
+
     @Override
     public boolean equals(Object that) {
         if (this == that) {

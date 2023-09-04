@@ -4,7 +4,6 @@ import cn.hutool.crypto.SecureUtil;
 import cn.hutool.json.JSONUtil;
 import com.danxiaocampus.callback.constant.RedisConstant;
 import com.danxiaocampus.callback.model.DO.CallbackInfo;
-import com.danxiaocampus.callback.model.DO.ForwardInfo;
 import com.danxiaocampus.callback.model.TraceServerInfo;
 import com.danxiaocampus.callback.model.WxImageModerationAsyncResult;
 import com.danxiaocampus.callback.service.CallbackInfoService;
@@ -12,9 +11,6 @@ import com.danxiaocampus.callback.service.ForwardInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -70,9 +66,11 @@ public class WxModerateController {
         }
         // 2. 缓存到redis
         String key = RedisConstant.CALLBACK_MODERATE_KEY + traceId;
-        String value = uri + "-" + timeStamp;
-        // 使用String来存储server信息
-        stringRedisTemplate.opsForValue().set(key, value, RedisConstant.CALLBACK_MODERATE_TTL, TimeUnit.SECONDS);
+        String jsonStr = JSONUtil.toJsonStr(serverInfo);
+        // 使用String来存储server信息 { k : timestamp} : {value : TraceServerInfo}
+        stringRedisTemplate.opsForValue().set(key, jsonStr, RedisConstant.CALLBACK_MODERATE_TTL, TimeUnit.SECONDS);
+        // 通过zset来快速获取超时的数据
+        stringRedisTemplate.opsForZSet().add("key", traceId, timeStamp);
         return ResponseEntity.ok("callback接收成功");
     }
 
@@ -85,40 +83,7 @@ public class WxModerateController {
      */
     @PostMapping("/review/image/callback")
     public ResponseEntity<String> receiveImageModerateResult(@RequestBody WxImageModerationAsyncResult callbackMessage, HttpServletRequest request) {
-        // 获取转发的目标URL
-        String targetUrl = getDestServer(callbackMessage);
-        if (targetUrl.equals("")) {
-            log.error("获取目的服务器路径失败, trace_id :{}", callbackMessage.getTraceId());
-            return null;
-        }
-        String body = JSONUtil.toJsonStr(callbackMessage);
-        if (StringUtils.isNotBlank(targetUrl)) {
-            // 持久化转发信息
-            ForwardInfo forwardInfo = new ForwardInfo(request);
-            forwardInfo.setBody(body);
-            forwardInfo.setServerUri(targetUrl);
-            forwardInfoService.save(forwardInfo);
-            // 进行转发
-            // 1.获取到请求头
-            Enumeration<String> headerNames = request.getHeaderNames();
-            HttpHeaders headers = new HttpHeaders();
-            while (headerNames.hasMoreElements()) {
-                String headerName = headerNames.nextElement();
-                String header = request.getHeader(headerName);
-                headers.add(headerName, header);
-            }
-            // 2.构造HttpEntity，包括请求头和请求体
-            HttpEntity<String> entity = new HttpEntity<>(body, headers);
-            // 3.转发请求并获取响应
-            ResponseEntity<String> responseEntity = restTemplate.exchange(targetUrl, HttpMethod.POST, entity, String.class);
-            // 4.存储响应状态
-            forwardInfo.setResponseResult(responseEntity.getStatusCode().toString());
-            forwardInfoService.updateById(forwardInfo);
-            log.info("审核回调消息转发成功, targetUrl:{}", targetUrl);
-            return responseEntity;
-        } else {
-            return ResponseEntity.badRequest().body("Target URL not available.");
-        }
+        return forwardInfoService.forwardModerateResult(callbackMessage,request);
     }
 
     /**
@@ -166,26 +131,4 @@ public class WxModerateController {
         }
     }
 
-    /**
-     * 获得目的回调地址
-     *
-     * @param callBackMessage 回电话消息
-     * @return {@link String}
-     */
-    private String getDestServer(WxImageModerationAsyncResult callBackMessage) {
-        String traceId = callBackMessage.getTraceId();
-        String key = RedisConstant.CALLBACK_MODERATE_KEY + traceId;
-        String server = stringRedisTemplate.opsForValue().get(key);
-        if (StringUtils.isNotEmpty(server)) {
-            return server;
-        } else {
-            // 查询mysql中是否保存有数据
-            CallbackInfo callbackInfo = callbackInfoService.getInfoByTraceId(traceId);
-            if (callbackInfo == null) {
-                return "";
-            } else {
-                return callbackInfo.getServerUri();
-            }
-        }
-    }
 }
