@@ -10,7 +10,7 @@ import lombok.Data;
 @Data
 public class WxModerationResult {
 
-    private String suggest;
+    private WxModerationSuggestionEnum suggest;
 
     private Integer label;
 }

@@ -2,6 +2,7 @@ package com.danxiaocampus.callback.mapper;
 
 import com.danxiaocampus.callback.model.DO.ForwardInfo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
 * @author dhx
@@ -9,6 +10,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @createDate 2023-09-04 21:09:06
 * @Entity com.danxiaocampus.callback.model.DO.ForwardInfo
 */
+@Mapper
 public interface ForwardInfoMapper extends BaseMapper<ForwardInfo> {
 
 }
