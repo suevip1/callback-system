@@ -1,7 +1,9 @@
 package com.danxiaocampus.callback.controller;
 
+import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONUtil;
 import com.danxiaocampus.callback.Config.PropertiesConfig;
-import com.danxiaocampus.callback.constant.RedisConstant;
+import com.danxiaocampus.callback.model.TraceServerInfo;
 import com.danxiaocampus.callback.model.WxImageModerationAsyncResult;
 import com.danxiaocampus.callback.model.WxModerationResult;
 import lombok.extern.slf4j.Slf4j;
@@ -30,19 +32,22 @@ public class TestServerController {
 
 
     @GetMapping("/send/moderate")
-    public String simulateSendModerate(){
+    public String simulateSendModerate(@RequestParam("trace_id") String traceId) {
         /*
         ....执行图像审核逻辑
         */
-        // 保存server信息到redis
-        String traceId = properties.getTraceId();
-        String key = RedisConstant.CALLBACK_MODERATE_KEY+traceId;
-        String serverUrl = properties.getTestServerUrl();
-        stringRedisTemplate.opsForValue().set(key,serverUrl);
-        String s = stringRedisTemplate.opsForValue().get(key);
-        if(StringUtils.isNotBlank(s)){
-            log.info("test-server执行图像审核: trace_id:{}",traceId);
+        if (StringUtils.isBlank(traceId)) {
+            traceId = properties.getTraceId();
         }
+        log.info("test-server执行图像审核: trace_id:{}", traceId);
+        // 发送信息到callback-server
+        TraceServerInfo serverInfo = new TraceServerInfo();
+        String serverUrl = properties.getTestServerUrl();
+        serverInfo.setUri(serverUrl);
+        serverInfo.setTraceId(traceId);
+        String callBack = "http://localhost:9000/api/moderate/trace";
+        String post = HttpUtil.post(callBack, JSONUtil.toJsonStr(serverInfo));
+        log.info("回调服务器响应结果:{}", post);
         return null;
     }
 

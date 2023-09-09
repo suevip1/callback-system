@@ -13,7 +13,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -31,8 +30,6 @@ import java.util.concurrent.TimeUnit;
 public class WxModerateController {
     public static final String VERIFY_TOKEN = "eggcampusToken";
 
-    @Resource
-    private RestTemplate restTemplate;
 
     @Resource
     StringRedisTemplate stringRedisTemplate;

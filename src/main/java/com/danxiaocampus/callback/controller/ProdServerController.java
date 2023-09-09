@@ -1,13 +1,15 @@
 package com.danxiaocampus.callback.controller;
 
+import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONUtil;
 import com.danxiaocampus.callback.Config.PropertiesConfig;
-import com.danxiaocampus.callback.constant.RedisConstant;
+import com.danxiaocampus.callback.model.TraceServerInfo;
 import com.danxiaocampus.callback.model.WxImageModerationAsyncResult;
 import com.danxiaocampus.callback.model.WxModerationResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import java.util.Map;
@@ -23,25 +25,31 @@ import java.util.Map;
 public class ProdServerController {
 
     @Resource
-    StringRedisTemplate stringRedisTemplate;
-
-    @Resource
     PropertiesConfig properties;
 
+    @Resource
+    RestTemplate restTemplate;
+
     @GetMapping("/send/moderate")
-    public String simulateSendModerate(){
+    public String simulateSendModerate(@RequestParam("trace_id") String traceId) {
+        // 1. 请求wx服务获取trace_id
+        // 2. 保存taceId
+        // 3. 发送traceId以及回调url给callback服务器
         /*
-        ....执行图像审核逻辑
+        ....执行图像审核逻辑 : 模拟图像审核逻辑 , 获取trace_id
         */
-        // 保存server信息到redis
-        String traceId = properties.getTraceId();
-        String key = RedisConstant.CALLBACK_MODERATE_KEY+traceId;
-        String serverUrl = properties.getProdServerUrl();
-        stringRedisTemplate.opsForValue().set(key,serverUrl);
-        String s = stringRedisTemplate.opsForValue().get(key);
-        if(StringUtils.isNotBlank(s)){
-            log.info("prod-server执行图像审核: trace_id:{}",traceId);
+        if (StringUtils.isBlank(traceId)) {
+            traceId = properties.getTraceId();
         }
+        log.info("prod-server执行图像审核: trace_id:{}", traceId);
+        // 发送信息到callback-server
+        TraceServerInfo serverInfo = new TraceServerInfo();
+        String serverUrl = properties.getProdServerUrl();
+        serverInfo.setUri(serverUrl);
+        serverInfo.setTraceId(traceId);
+        String callBack = "http://localhost:9000/api/moderate/trace";
+        String post = HttpUtil.post(callBack, JSONUtil.toJsonStr(serverInfo));
+        log.info("回调服务器响应结果:{}", post);
         return null;
     }
 

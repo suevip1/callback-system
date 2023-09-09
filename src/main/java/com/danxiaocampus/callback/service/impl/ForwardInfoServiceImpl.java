@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.danxiaocampus.callback.constant.RedisConstant;
 import com.danxiaocampus.callback.model.DO.CallbackInfo;
 import com.danxiaocampus.callback.model.DO.ForwardInfo;
+import com.danxiaocampus.callback.model.TraceServerInfo;
 import com.danxiaocampus.callback.model.WxImageModerationAsyncResult;
 import com.danxiaocampus.callback.service.CallbackInfoService;
 import com.danxiaocampus.callback.service.ForwardInfoService;
@@ -112,7 +113,8 @@ public class ForwardInfoServiceImpl extends ServiceImpl<ForwardInfoMapper, Forwa
         String key = RedisConstant.CALLBACK_MODERATE_KEY + traceId;
         String server = stringRedisTemplate.opsForValue().get(key);
         if (StringUtils.isNotEmpty(server)) {
-            return server;
+            TraceServerInfo serverInfo = JSONUtil.toBean(server, TraceServerInfo.class);
+            return serverInfo.getUri();
         } else {
             // 查询mysql中是否保存有数据
             CallbackInfo callbackInfo = callbackInfoService.getInfoByTraceId(traceId);
