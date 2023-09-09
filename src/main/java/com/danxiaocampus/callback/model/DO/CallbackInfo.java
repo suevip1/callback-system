@@ -10,6 +10,8 @@ import java.util.Date;
 
 import com.danxiaocampus.callback.model.TraceServerInfo;
 import lombok.Data;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * @TableName t_callback_info
@@ -32,6 +34,11 @@ public class CallbackInfo implements Serializable {
      * 目的服务器接口地址
      */
     private String serverUri;
+
+    /**
+     * 小程序ID(callback供多项目使用)
+     */
+    private String appId;
 
     /**
      * 是否接收到回调消息
@@ -64,49 +71,31 @@ public class CallbackInfo implements Serializable {
     }
 
     @Override
-    public boolean equals(Object that) {
-        if (this == that) {
-            return true;
-        }
-        if (that == null) {
-            return false;
-        }
-        if (getClass() != that.getClass()) {
-            return false;
-        }
-        CallbackInfo other = (CallbackInfo) that;
-        return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
-                && (this.getTraceId() == null ? other.getTraceId() == null : this.getTraceId().equals(other.getTraceId()))
-                && (this.getServerUri() == null ? other.getServerUri() == null : this.getServerUri().equals(other.getServerUri()))
-                && (this.getIsReceived() == null ? other.getIsReceived() == null : this.getIsReceived().equals(other.getIsReceived()))
-                && (this.getErrMsg() == null ? other.getErrMsg() == null : this.getErrMsg().equals(other.getErrMsg()));
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        CallbackInfo that = (CallbackInfo) o;
+
+        return new EqualsBuilder().append(id, that.id).append(traceId, that.traceId).append(serverUri, that.serverUri).append(appId, that.appId).append(isReceived, that.isReceived).append(errMsg, that.errMsg).append(createTime, that.createTime).isEquals();
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
-        result = prime * result + ((getTraceId() == null) ? 0 : getTraceId().hashCode());
-        result = prime * result + ((getServerUri() == null) ? 0 : getServerUri().hashCode());
-        result = prime * result + ((getIsReceived() == null) ? 0 : getIsReceived().hashCode());
-        result = prime * result + ((getErrMsg() == null) ? 0 : getErrMsg().hashCode());
-        return result;
+        return new HashCodeBuilder(17, 37).append(id).append(traceId).append(serverUri).append(appId).append(isReceived).append(errMsg).append(createTime).toHashCode();
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName());
-        sb.append(" [");
-        sb.append("Hash = ").append(hashCode());
-        sb.append(", id=").append(id);
-        sb.append(", traceId=").append(traceId);
-        sb.append(", serverUri=").append(serverUri);
-        sb.append(", isReceived=").append(isReceived);
-        sb.append(", errMsg=").append(errMsg);
-        sb.append(", serialVersionUID=").append(serialVersionUID);
-        sb.append("]");
-        return sb.toString();
+        return "CallbackInfo{" +
+                "id=" + id +
+                ", traceId='" + traceId + '\'' +
+                ", serverUri='" + serverUri + '\'' +
+                ", appId='" + appId + '\'' +
+                ", isReceived=" + isReceived +
+                ", errMsg='" + errMsg + '\'' +
+                ", createTime=" + createTime +
+                '}';
     }
 }
