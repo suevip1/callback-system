@@ -1,6 +1,13 @@
 spring:
   datasource:
-    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
-    url: jdbc:p6spy:mysql://1.117.165.232:3306/campus-callback
-    username: campus-callback
-    password: jmwaN2537yzResJZ
+    # TODO 修改MySQL配置
+    url: jdbc:mysql://192.168.159.134:3306/campus-callback
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    password: root
+    username: root
+
+ngrok:
+  # TODO 修改ngrok配置
+  enabled: true # 开启ngrok
+  # 复制上面获取的authtoken到此处
+  auth-token: 2VBsakun3ifsIXkeMLHRTkyRPam_293NkLm41dEL6J8VcXac1
