@@ -56,6 +56,7 @@ public class WxModerateController {
         // 1. 持久化到mysql
         String uri = serverInfo.getUri();
         String traceId = serverInfo.getTraceId();
+        log.info("接收到回调请求, server_uri:{},trace_id:{}", uri, traceId);
         CallbackInfo callbackInfo = new CallbackInfo(serverInfo, timeStamp);
         boolean save = callbackInfoService.save(callbackInfo);
         if (!save) {
@@ -80,7 +81,7 @@ public class WxModerateController {
      */
     @PostMapping("/review/image/callback")
     public ResponseEntity<String> receiveImageModerateResult(@RequestBody WxImageModerationAsyncResult callbackMessage, HttpServletRequest request) {
-        return forwardInfoService.forwardModerateResult(callbackMessage,request);
+        return forwardInfoService.forwardModerateResult(callbackMessage, request);
     }
 
     /**

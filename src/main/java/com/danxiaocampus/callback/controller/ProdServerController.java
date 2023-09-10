@@ -33,7 +33,7 @@ public class ProdServerController {
     @GetMapping("/send/moderate")
     public String simulateSendModerate(@RequestParam("trace_id") String traceId) {
         // 1. 请求wx服务获取trace_id
-        // 2. 保存taceId
+        // 2. 保存traceId
         // 3. 发送traceId以及回调url给callback服务器
         /*
         ....执行图像审核逻辑 : 模拟图像审核逻辑 , 获取trace_id

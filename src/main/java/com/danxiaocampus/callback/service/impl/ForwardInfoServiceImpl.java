@@ -111,6 +111,7 @@ public class ForwardInfoServiceImpl extends ServiceImpl<ForwardInfoMapper, Forwa
         } catch (RuntimeException e) {
             String traceId = callbackMessage.getTraceId();
             String appid = callbackMessage.getAppid();
+            log.error("回调系统内部异常,traceId:{},异常信息:{}",traceId,e.getMessage());
             boolean update = callbackInfoService.update()
                     .set("app_id", appid)
                     .set("err_msg", CallbackError.CALLBACK_ERROR + "," + e.getMessage())
