@@ -61,6 +61,12 @@ public class ModerateTimeOutJob {
                 if (!update) {
                     log.error("更新回调消息状态失败, traceId:{}", traceId);
                 }
+                // 删除redis中存储的trace_id相关信息
+                String key = RedisConstant.CALLBACK_MODERATE_KEY + traceId;
+                // remove from string
+                stringRedisTemplate.delete(key);
+                // remove from ZSET
+                stringRedisTemplate.opsForZSet().remove(RedisConstant.CALLBACK_MODERATE_ZSET_KEY, traceId);
                 // 通知业务服务器
                 informTargetServer(traceId);
             });
@@ -79,7 +85,7 @@ public class ModerateTimeOutJob {
             TraceServerInfo traceServerInfo = JSONUtil.toBean(serverInfoJson, TraceServerInfo.class);
             String uri = traceServerInfo.getUri();
             forwardInfoService.sendErrorModerateResult(new WxImageModerationAsyncResult(), uri);
-            log.info("向服务器发送审核失败消息,tragetUri:{}",uri);
+            log.info("向服务器发送审核失败消息,targetUri:{}",uri);
         }
     }
 

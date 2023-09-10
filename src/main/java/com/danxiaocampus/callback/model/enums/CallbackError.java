@@ -8,7 +8,6 @@ package com.danxiaocampus.callback.model.enums;
 public enum CallbackError {
     WX_TIMEOUT_ERROR("微信为按时返回回调消息"),
     CALLBACK_ERROR("callback内部异常"),
-
     BIZ_SERVER_ERROR("业务服务器响应异常 ");
 
     /**

@@ -67,7 +67,7 @@ public class WxModerateController {
         // 使用String来存储server信息 { k : timestamp} : {value : TraceServerInfo}
         stringRedisTemplate.opsForValue().set(key, jsonStr, RedisConstant.CALLBACK_MODERATE_TTL, TimeUnit.SECONDS);
         // 通过zset来快速获取超时的数据
-        stringRedisTemplate.opsForZSet().add("key", traceId, timeStamp);
+        stringRedisTemplate.opsForZSet().add(RedisConstant.CALLBACK_MODERATE_ZSET_KEY, traceId, timeStamp);
         return ResponseEntity.ok("callback接收成功");
     }
 

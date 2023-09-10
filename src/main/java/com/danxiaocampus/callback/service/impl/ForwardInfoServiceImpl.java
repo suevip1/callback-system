@@ -97,6 +97,13 @@ public class ForwardInfoServiceImpl extends ServiceImpl<ForwardInfoMapper, Forwa
                     }
                 }
                 log.info("审核回调消息转发成功, targetUrl:{}", targetUrl);
+                // 5. 删除redis中存储的trace_id相关信息
+                String traceId = callbackMessage.getTraceId();
+                String key = RedisConstant.CALLBACK_MODERATE_KEY + traceId;
+                // remove from string
+                stringRedisTemplate.delete(key);
+                // remove from ZSET
+                stringRedisTemplate.opsForZSet().remove(RedisConstant.CALLBACK_MODERATE_ZSET_KEY, traceId);
                 return responseEntity;
             } else {
                 return ResponseEntity.badRequest().body("Target URL not available.");
